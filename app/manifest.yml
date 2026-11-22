@@ -1,0 +1,110 @@
+# ReAttest — Forge manifest (spike skeleton, 20 Nov 2026)
+# Two-app strategy (spec v2 §9): this is the JUDGE app (no licensing block).
+# The Marketplace copy is a separate app id with licensing added.
+modules:
+  jira:projectPage:
+    - key: reattest-dashboard
+      resource: dashboard
+      resolver:
+        function: resolver
+      title: ReAttest — Evidence Packs
+      icon: resource:dashboard;icons/reattest.svg
+  jira:issuePanel:
+    - key: reattest-issue-panel
+      resource: dashboard
+      resolver:
+        function: resolver
+      title: ReAttest evidence
+      icon: resource:dashboard;icons/reattest.svg
+  scheduledTrigger:
+    - key: reattest-weekly-drift-watch
+      function: driftWatch
+      interval: week
+  rovo:agent:
+    - key: reattest-agent
+      name: ReAttest Auditor Assistant
+      description: >-
+        Explains evidence pack status, gaps and verification results. It never
+        decides verdicts — all verdicts come from the deterministic verification
+        engine. Answers cite engine output only.
+      conversationStarters:
+        - Which controls are failing right now, and why?
+        - Show me every item that changed since its snapshot.
+        - Which evidence is stale or missing for CC7.2?
+        - What is the completeness of the current pack?
+      actions:
+        - packStatus
+        - listGaps
+        - verifyItem
+      prompt: resource:dashboard;prompts/agent.txt
+  action:
+    - key: packStatus
+      name: Get pack status
+      description: Returns per-control verdict counts from the verification ledger.
+      function: agentActions
+      actionVerb: GET
+    - key: listGaps
+      name: List evidence gaps
+      description: Returns items whose verdict is not VERIFIED, with reasons.
+      function: agentActions
+      actionVerb: GET
+    - key: verifyItem
+      name: Verify one evidence item
+      description: Requests a fresh verification of one item and returns the engine verdict.
+      function: agentActions
+      actionVerb: GET
+    - key: getProvenance
+      name: Get verification provenance
+      description: Returns the hash-chained verification ledger head and recent runs.
+      function: agentActions
+      actionVerb: GET
+  rovo:mcp:
+    - key: reattest-mcp
+      name: ReAttest Evidence MCP
+      tools:
+        - packStatus
+        - listGaps
+        - verifyItem
+        - getProvenance
+  webtrigger:
+    - key: pack-export
+      function: packExport
+    - key: ops
+      function: opsFn
+  function:
+    - key: resolver
+      handler: index.handler
+    - key: driftWatch
+      handler: index.driftWatch
+    - key: agentActions
+      handler: index.agentActions
+    - key: packExport
+      handler: index.packExport
+    - key: opsFn
+      handler: index.ops
+resources:
+  - key: dashboard
+    path: static/dashboard/build
+    tunnel:
+      port: 3000
+permissions:
+  scopes:
+    - read:jira-work
+    - write:jira-work
+    - read:jira-user
+    - search:confluence
+    - read:space:confluence
+    - write:page:confluence
+    - read:page:confluence
+    - read:confluence-content.all
+    - write:confluence-content
+    - read:confluence-props
+    - write:confluence-props
+    - storage:app
+  content:
+    styles:
+      - unsafe-inline
+app:
+  runtime:
+    name: nodejs24.x
+  id: ari:cloud:ecosystem::app/d7cb9d35-f880-4c3f-8f1d-de3808e3fc97
