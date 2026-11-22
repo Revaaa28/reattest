@@ -72,4 +72,4 @@ A scripted fixture planted known changes against the deployed app:
 - `app/src/core/` — canonicalization, fingerprinting, rules (pure, tested)
 - `app/scripts/verify-export.mjs` — the standalone offline verifier
 
-MIT licensed. Built solo for Codegeist 2026.
+Apache License 2.0 licensed. Built solo for Codegeist 2026.
