@@ -93,6 +93,10 @@ change. Last updated: 24 November 2026.
   PRIVACY.md).
 - For development only: GitHub (source hosting). No customer data is
   processed there.
+- Third-party services and tools are assessed before adoption (what
+  data they would touch, who operates them, and whether they are
+  needed); the adopted set is the record above, and it is reviewed
+  whenever tooling changes.
 
 ## AI use
 
