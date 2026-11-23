@@ -1,8 +1,7 @@
 import Resolver from '@forge/resolver';
-import forgeApi from '@forge/api';
 import { packStatus, snapshotControl, verifyControl, getControl } from './pack.js';
 import { CONTROLS } from './core/rules.js';
-import { getReport, getLedgerRuns, getPopulation, resetAll } from './store.js';
+import { getReport, getLedgerRuns, getPopulation } from './store.js';
 import { seedDemo } from './seeder.js';
 
 const resolver = new Resolver();
@@ -77,55 +76,4 @@ export const driftWatch = async () => {
     if (await getPopulation(c.id)) reports.push(await verifyControl(c.id));
   }
   return { verified: reports.length };
-};
-
-// --- Webtrigger: ops endpoint (seed / snapshot / verify without the UI) ---
-// Used by the demo script and the offline verifier; the URL itself is the
-// capability (unguessable per installation).
-export const ops = async (req) => {
-  const q = req.queryParameters ?? {};
-  const op = (q.op ?? [])[0];
-  const controlId = (q.control ?? [])[0];
-  const json = (statusCode, obj) => ({ statusCode, headers: { 'Content-Type': ['application/json'] }, body: JSON.stringify(obj, null, 2) });
-  try {
-    if (op === 'reset') { await resetAll(CONTROLS.map((c) => c.id)); return json(200, { reset: true }); }
-    if (op === 'twg') {
-      // Probe: can this app query the Teamwork Graph at all (F4 recon)?
-      const ari = (q.ari ?? [])[0];
-      if (!ari) return json(400, { error: 'pass ari=<jira issue ARI>' });
-      const query = `query ReAttestProbe($ari: ID!) { node(id: $ari) { id ... on JiraIssue { key summary } } }`;
-      try {
-        const res = await forgeApi.asApp().requestGraph(query, { ari });
-        return json(200, { status: res.status, body: (await res.text()).slice(0, 600) });
-      } catch (e) { return json(200, { thrown: String(e?.message ?? e).slice(0, 400) }); }
-    }
-    if (op === 'seed') return json(200, await seedDemo((q.space ?? [])[0]));
-    if (op === 'snapshot' && controlId) return json(200, await snapshotControl(controlId));
-    if (op === 'snapshotAll') {
-      const out = [];
-      for (const c of CONTROLS) { try { out.push(await snapshotControl(c.id)); } catch (e) { out.push({ controlId: c.id, error: String(e) }); } }
-      return json(200, out);
-    }
-    if (op === 'verify' && controlId) return json(200, await verifyControl(controlId));
-    if (op === 'verifyAll') {
-      const out = [];
-      for (const c of CONTROLS) { if (await getPopulation(c.id)) out.push(await verifyControl(c.id)); }
-      return json(200, out);
-    }
-    return json(400, { error: 'op must be seed | snapshot | snapshotAll | verify | verifyAll (with control= for single ops)' });
-  } catch (e) {
-    return json(500, { error: String(e?.message ?? e) });
-  }
-};
-
-// --- Webtrigger: offline-verifier export endpoint ---
-export const packExport = async () => {
-  const status = await packStatus();
-  const reports = {};
-  for (const c of CONTROLS) reports[c.id] = await getReport(c.id);
-  return {
-    statusCode: 200,
-    headers: { 'Content-Type': ['application/json'] },
-    body: JSON.stringify({ exportedAt: new Date().toISOString(), status, reports, ledger: await getLedgerRuns(50) }, null, 2),
-  };
 };

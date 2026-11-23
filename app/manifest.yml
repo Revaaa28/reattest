@@ -66,11 +66,6 @@ modules:
         - listGaps
         - verifyItem
         - getProvenance
-  webtrigger:
-    - key: pack-export
-      function: packExport
-    - key: ops
-      function: opsFn
   function:
     - key: resolver
       handler: index.handler
@@ -78,10 +73,6 @@ modules:
       handler: index.driftWatch
     - key: agentActions
       handler: index.agentActions
-    - key: packExport
-      handler: index.packExport
-    - key: opsFn
-      handler: index.ops
 resources:
   - key: dashboard
     path: static/dashboard/build
