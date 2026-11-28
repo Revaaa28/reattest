@@ -92,6 +92,9 @@ permissions:
     - read:confluence-props
     - write:confluence-props
     - storage:app
+    - read:graph:issue:jira
+    - read:graph:page:confluence
+    - read:graph:user:atlassian
   content:
     styles:
       - unsafe-inline
@@ -99,3 +102,10 @@ app:
   runtime:
     name: nodejs24.x
   id: ari:cloud:ecosystem::app/d7cb9d35-f880-4c3f-8f1d-de3808e3fc97
+  rovo:
+    tag: reattest
+    description: Re-verifies SOC 2 and ISO 27001 audit evidence in Jira and Confluence against its live source
+    keywords:
+      - audit-evidence
+      - compliance
+      - verification

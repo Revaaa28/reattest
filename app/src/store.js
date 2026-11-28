@@ -50,6 +50,12 @@ export async function resetAll(controlIds) {
   await kvs.delete('ledger:runs');
   await kvs.delete('ledger:head');
 }
+export async function getTwgCloudId() {
+  return (await kvs.get('twg:cloudId')) ?? null;
+}
+export async function putTwgCloudId(cloudId) {
+  await kvs.set('twg:cloudId', cloudId);
+}
 export async function putExceptions(controlId, exceptions) {
   await kvs.set(`exc:${controlId}`, exceptions);
 }
